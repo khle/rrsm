@@ -23,7 +23,7 @@ var PresencePane = React.createClass({
                     <li className="collection-header"><h4>Users entry/exit</h4></li>
                     { 
                         this.props.data.map((user, index) => {
-                            return <li className="collection-item">{user.nickname} joins at {user.connectTime}</li>
+                            return <li className="collection-item">{user.nickname} joins at {moment(user.connectTime).format('YYYY-MM-DD HH:mm:ss')}</li>
                         })
                     }
                  </ul>    

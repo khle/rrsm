@@ -18,7 +18,7 @@ var source = Rx.Observable.create(function(observer) {
         socket.emit('my socketId', {'socketId': socket.id, 'connectTime': Date.now()});
         
         socket.on('client connect', function(data) {
-            observer.onNext({'socket': socket, 'data': data});       
+            observer.onNext({'socket': socket, 'data': data, 'event': 'client connect'});       
         });           
     });    
     
@@ -27,7 +27,11 @@ var source = Rx.Observable.create(function(observer) {
     }
 });
 
-var observer = source.subscribe(function(obj) {    
+var observer = source
+.filter(function(data) {
+    return data.event === 'client connect';
+})
+.subscribe(function(obj) {    
     //obj.socket.emit('new user', obj.data);
     io.emit('new user', obj.data);    
     console.log('New client connected ', obj.data);
