@@ -54,9 +54,12 @@ var ChatPane = React.createClass({
                     
                 </ul>
                 <div className="row">
-                    <div className="input-field col s12">
+                    <div className="input-field col s10">
                         <input id="first_name2" type="text" className="validate" />
                         <label className="active" for="first_name2">Type your chat, enter/return to send</label>
+                    </div>
+                    <div className="input-field col s2">
+                        <a className="btn-floating btn-large waves-effect waves-light red"><i className="material-icons">send</i></a>
                     </div>
                 </div>
             </div>
