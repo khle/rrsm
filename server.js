@@ -10,11 +10,14 @@ console.log('Server listening on port 8080');
 
 var io = require('socket.io')(server);
 var source = Rx.Observable.create(function(observer) {
-        
+    
+    //start
     io.on('connection', function(socket) {
-        console.log('connection');
-        socket.on('client connect', function(data) {       
-            console.log('client connect ', data);
+        console.log('Client connection notified to server first. Client socketId is ', socket.id);
+        
+        socket.emit('my socketId', {'socketId': socket.id, 'connectTime': Date.now()});
+        
+        socket.on('client connect', function(data) {
             observer.onNext({'socket': socket, 'data': data});       
         });           
     });    

@@ -19,10 +19,11 @@ var PresencePane = React.createClass({
     render() {        
         return (
             <div>
-                <ul className="collection">
+                <ul className="collection with-header">
+                    <li className="collection-header"><h4>Users entry/exit</h4></li>
                     { 
                         this.props.data.map((user, index) => {
-                            return <li className="collection-item">{user}</li>
+                            return <li className="collection-item">{user.nickname} joins at {user.connectTime}</li>
                         })
                     }
                  </ul>    
@@ -35,7 +36,15 @@ var ChatPane = React.createClass({
     render() {
         return (
             <div>
-                
+                <ul className="collection with-header">
+                    <li className="collection-header"><h4>Chats</h4></li>
+                </ul>
+                <div className="row">
+                    <div className="input-field col s12">
+                        <input id="first_name2" type="text" className="validate" />
+                        <label className="active" for="first_name2">Type your chat, enter/return to send</label>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -53,17 +62,24 @@ var Main = React.createClass({
         var users = this.state.users;
         var that = this;
         
+        socket.on('my socketId', function(data) {
+            console.log('my socketId event ', data.socketId, data.connectTime); 
+            props.socketId = data.socketId;
+            props.connectTime = data.connectTime;
+            
+            socket.emit('client connect', props); //{nickname, socketId, connectTime}
+        });
+        
+        //Happens first, same time with io.on('connection') on server, but useless 
+        //because it has not socketId
         socket.on('connect', function() {
-            console.log('on connect ', props);
-            socket.emit('client connect', {
-                'nickname': props.nickname
-            });
+            console.log('on connect event ', props, '.  We do nothing with this event');
         });
 
         socket.on('new user', function(data) {   
             console.log('new user');
-            console.log(data.nickname);
-            users.push(data.nickname);
+            console.log(data);
+            users.push(data);
             that.setState(users);            
         });                
     },
@@ -72,8 +88,8 @@ var Main = React.createClass({
             <div>
                 <AppBar />
                 <div className="row">                  
-                    <div className="col s6"><PresencePane data={this.state.users} /></div>
                     <div className="col s6"><ChatPane /></div>
+                    <div className="col s6"><PresencePane data={this.state.users} /></div>
                 </div>
             </div>
         );
