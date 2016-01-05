@@ -4,7 +4,7 @@ var AppBar = React.createClass({
             <div className="navbar-fixed">
                 <nav>
                     <div className="nav-wrapper">
-                      <a href="#" className="brand-logo center">React</a>
+                      <a href="#" className="brand-logo center">RxJS ReactJS SocketIO MaterializeCSS</a>
                         <ul id="nav-mobile" className="left hide-on-med-and-down">
                             <li><a href="#">About</a></li>                            
                       </ul>
@@ -16,17 +16,29 @@ var AppBar = React.createClass({
 });
 
 var PresencePane = React.createClass({
-    render() {        
-        return (
+    render() {    
+        return (        
             <div>
-                <ul className="collection with-header">
-                    <li className="collection-header"><h4>Users entry/exit</h4></li>
+                <h4>Active Users</h4>
+                <table className="striped">
+                    <thead>
+                        <tr>
+                            <th data-field="id">Nickname</th>
+                            <th data-field="name">Time joined</th>              
+                        </tr>
+                    </thead>
+
+                    <tbody>                    
                     { 
                         this.props.data.map((user, index) => {
-                            return <li className="collection-item">{user.nickname} joins at {moment(user.connectTime).format('YYYY-MM-DD HH:mm:ss')}</li>
+                            return <tr> 
+                                <td>{user.nickname}</td>
+                                <td>{moment(user.connectTime).format('YYYY-MM-DD HH:mm:ss')}</td>
+                            </tr>
                         })
                     }
-                 </ul>    
+                    </tbody>
+                 </table>    
             </div>
         );
     }
@@ -34,10 +46,12 @@ var PresencePane = React.createClass({
 
 var ChatPane = React.createClass({
     render() {
+        console.log(this.props);
         return (
             <div>
-                <ul className="collection with-header">
-                    <li className="collection-header"><h4>Chats</h4></li>
+                <h4>Your nickname is {this.props.data.nickname}</h4>
+                <ul className="collection">
+                    
                 </ul>
                 <div className="row">
                     <div className="input-field col s12">
@@ -76,11 +90,10 @@ var Main = React.createClass({
             console.log('on connect event ', props, '.  We do nothing with this event');
         });
 
-        socket.on('new user', function(data) {   
+        socket.on('all users', function(data) {   
             console.log('new user');
-            console.log(data);
-            users.push(data);
-            that.setState(users);            
+            console.log(data);            
+            that.setState({users: data});            
         });                
     },
     render() {
@@ -88,7 +101,7 @@ var Main = React.createClass({
             <div>
                 <AppBar />
                 <div className="row">                  
-                    <div className="col s6"><ChatPane /></div>
+                    <div className="col s6"><ChatPane data={{nickname: this.props.nickname}}/></div>
                     <div className="col s6"><PresencePane data={this.state.users} /></div>
                 </div>
             </div>

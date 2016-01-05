@@ -1,7 +1,9 @@
 var path = require('path'),
     express = require('express'),
-    Rx = require('rx');
+    Rx = require('rx'),
+    Immutable = require('immutable');
 
+var usersMap = Immutable.Map({});
 var app = express();
 app.use('/', express.static(path.join(__dirname, 'client')));
 
@@ -9,9 +11,8 @@ var server = app.listen(8080);
 console.log('Server listening on port 8080');
 
 var io = require('socket.io')(server);
-var source = Rx.Observable.create(function(observer) {
+var sourceConnect = Rx.Observable.create(function(observer) {
     
-    //start
     io.on('connection', function(socket) {
         console.log('Client connection notified to server first. Client socketId is ', socket.id);
         
@@ -19,7 +20,7 @@ var source = Rx.Observable.create(function(observer) {
         
         socket.on('client connect', function(data) {
             observer.onNext({'socket': socket, 'data': data, 'event': 'client connect'});       
-        });           
+        });                
     });    
     
     return function() {
@@ -27,13 +28,41 @@ var source = Rx.Observable.create(function(observer) {
     }
 });
 
-var observer = source
-.filter(function(data) {
-    return data.event === 'client connect';
-})
+var sourceDisconnect = Rx.Observable.create(function(observer) {
+    
+    io.on('connection', function(socket) {                
+        socket.on('disconnect', function(data) {
+            observer.onNext({'socketId': socket.id, 'event': 'client disconnect'});       
+        });
+    });    
+    
+    return function() {
+        io.close();
+    }
+});
+
+var observerConnect = sourceConnect
 .subscribe(function(obj) {    
     //obj.socket.emit('new user', obj.data);
-    io.emit('new user', obj.data);    
+    //io.emit('new user', obj.data);    
     console.log('New client connected ', obj.data);
+    var socketId = obj.data.socketId;
+    usersMap = usersMap.set(socketId, obj.data);
+    console.log(usersMap);
+    io.emit('all users', usersMap.toArray());
 });
+
+var observerDisconnect = sourceDisconnect
+.subscribe(function(obj) { 
+    console.log(usersMap);
+    var socketId = obj.socketId;
+    console.log(socketId);
+    var user = usersMap.get(socketId);
+    console.log('Client disconnected ', user.socketId, user.nickname);
+    usersMap = usersMap.delete(obj.socketId);
+    io.emit('all users', usersMap.toArray());
+});
+
+
+
 
