@@ -50,26 +50,21 @@ var ChatPane = React.createClass({
             message: ''
         }
     },
-    componentDidMount() {
-        var that = this;
+    componentDidMount() {        
         var button = document.getElementById('sendBtn');
         var textField = document.getElementById('message-input');
         
-        var clickStream = Rx.Observable.fromEvent(button, 'click').map(function (e) {
-            return true;
-        });
-        var textEnteredStream = Rx.Observable.fromEvent(textField, 'keyup').map(function (e) {
-            return e.target.value;
-        });
+        var clickStream = Rx.Observable.fromEvent(button, 'click').map(e => true);        
+        var enterKeyPressedStream = Rx.Observable.fromEvent(textField, 'keyup').filter(e => e.keyCode == 13);
+        var textEnteredStream = Rx.Observable.fromEvent(textField, 'keyup').map(e => e.target.value);
+        var sendMessageStream = Rx.Observable.merge(clickStream, enterKeyPressedStream);        
                 
-        var mergedStream = textEnteredStream.takeUntil(clickStream);
+        var mergedStream = textEnteredStream.takeUntil(sendMessageStream);
         
         var text = '';
-        var onNext = function(t) {
-            text = t;
-        }
-        var onError = function(e) {}
-        var onComplete = function() {            
+        var onNext = t => { text = t; }
+        var onError = e => {}
+        var onComplete = () => {            
             $.post('/message', {'message': text});
             textField.value = '';
             textField.focus();
@@ -91,7 +86,7 @@ var ChatPane = React.createClass({
                 <div className="row">
                     <div className="input-field col s10">
                         <input id="message-input" type="text" className="validate" ref="message" />
-                        <label className="active" for="message-input">Type your chat, enter/return to send</label>
+                        <label className="active" for="message-input">Type your chat, enter/return or hit button to send</label>
                     </div>
                     <div className="input-field col s2">
                         <a id="sendBtn" className="btn-floating btn-large waves-effect waves-light red"><i className="material-icons">send</i></a>
@@ -113,9 +108,9 @@ var Main = React.createClass({
         
         var props = this.props;
         var users = this.state.users;
-        var that = this;
+        var self = this;
         
-        socket.on('my socketId', function(data) {
+        socket.on('my socketId', data => {
             console.log('my socketId event ', data.socketId, data.connectTime); 
             props.socketId = data.socketId;
             props.connectTime = data.connectTime;
@@ -124,20 +119,16 @@ var Main = React.createClass({
         });
         
         //Happens first, same time with io.on('connection') on server, but useless 
-        //because it has not socketId
-        socket.on('connect', function() {
-            console.log('on connect event ', props, '.  We do nothing with this event');
-        });
+        //because it has not socketId.  We do nothing with this event
+        socket.on('connect', () => {});
 
-        socket.on('all users', function(data) {   
-            console.log('new user');
-            console.log(data);            
-            that.setState({users: data});            
+        socket.on('all users', data => {                
+            self.setState({users: data});            
         });
         
-        socket.on('message', function(data) {               
+        socket.on('message', data => {               
             console.log(data);            
-            that.setState(data); //data is { message: 'something like this' }
+            self.setState(data); //data is { message: 'something like this' }
         });
     },
     render() {
@@ -153,7 +144,7 @@ var Main = React.createClass({
     }
 });
 
-var createRandomNickname = function(len) {
+var createRandomNickname = len => {
     var text = '';
     var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     for(var i = 0; i < len; i++) {
