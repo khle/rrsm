@@ -45,8 +45,49 @@ var PresencePane = React.createClass({
 });
 
 var ChatPane = React.createClass({
+    getInitialState() {
+        return {
+            message: ''
+        }
+    },
+    componentDidMount() {
+        var that = this;
+        var button = document.getElementById('sendBtn');
+        var textField = document.getElementById('message-input');
+        
+        var clickStream = Rx.Observable.fromEvent(button, 'click').map(function (e) {
+            return true;
+        });
+        var textEnteredStream = Rx.Observable.fromEvent(textField, 'keyup').map(function (e) {
+            return e.target.value;
+        });
+        
+        var text = '';
+        var mergedStream = textEnteredStream.takeUntil(clickStream);
+        mergedStream.subscribe(function(c) {
+            text = c;           
+        }, function(e) {
+        
+        }, function() {
+            console.log(text);
+            $.post('/message', {'message': text});      
+            mergedStream.repeat();
+        });
+        
+        /*
+        clickStream.subscribe(function (event) {
+            console.log('click sendBtn ', event);
+        });
+        
+        textEnteredStream.subscribe(function(text) {
+            console.log('click sendBtn ', text);
+        });
+        */
+    },
     render() {
-        console.log(this.props);
+        var value = this.state.message;
+        console.log(this.props);        
+        
         return (
             <div>
                 <h4>Your nickname is {this.props.data.nickname}</h4>
@@ -55,11 +96,11 @@ var ChatPane = React.createClass({
                 </ul>
                 <div className="row">
                     <div className="input-field col s10">
-                        <input id="first_name2" type="text" className="validate" />
-                        <label className="active" for="first_name2">Type your chat, enter/return to send</label>
+                        <input id="message-input" type="text" className="validate" ref="message" />
+                        <label className="active" for="message-input">Type your chat, enter/return to send</label>
                     </div>
                     <div className="input-field col s2">
-                        <a className="btn-floating btn-large waves-effect waves-light red"><i className="material-icons">send</i></a>
+                        <a id="sendBtn" className="btn-floating btn-large waves-effect waves-light red"><i className="material-icons">send</i></a>
                     </div>
                 </div>
             </div>
@@ -97,7 +138,12 @@ var Main = React.createClass({
             console.log('new user');
             console.log(data);            
             that.setState({users: data});            
-        });                
+        });
+        
+        socket.on('message', function(data) {               
+            console.log(data);            
+            that.setState(data); //data is { message: 'something like this' }
+        });
     },
     render() {
         return (

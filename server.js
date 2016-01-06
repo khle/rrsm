@@ -1,10 +1,16 @@
 var path = require('path'),
     express = require('express'),
+    bodyParser = require('body-parser'),
     Rx = require('rx'),
     Immutable = require('immutable');
 
 var usersMap = Immutable.Map({});
 var app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+        extended: false
+    }));
 app.use('/', express.static(path.join(__dirname, 'client')));
 
 var server = app.listen(8080);
@@ -61,6 +67,11 @@ var observerDisconnect = sourceDisconnect
     console.log('Client disconnected ', user.socketId, user.nickname);
     usersMap = usersMap.delete(obj.socketId);
     io.emit('all users', usersMap.toArray());
+});
+
+app.post('/message', function(req, res) {
+    console.log(req.body);
+    io.emit('message', req.body);
 });
 
 
