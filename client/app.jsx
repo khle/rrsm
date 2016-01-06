@@ -61,28 +61,22 @@ var ChatPane = React.createClass({
         var textEnteredStream = Rx.Observable.fromEvent(textField, 'keyup').map(function (e) {
             return e.target.value;
         });
+                
+        var mergedStream = textEnteredStream.takeUntil(clickStream);
         
         var text = '';
-        var mergedStream = textEnteredStream.takeUntil(clickStream);
-        mergedStream.subscribe(function(c) {
-            text = c;           
-        }, function(e) {
+        var onNext = function(t) {
+            text = t;
+        }
+        var onError = function(e) {}
+        var onComplete = function() {            
+            $.post('/message', {'message': text});
+            textField.value = '';
+            textField.focus();
+            mergedStream.subscribe(onNext, onError, onComplete);
+        }
         
-        }, function() {
-            console.log(text);
-            $.post('/message', {'message': text});      
-            mergedStream.repeat();
-        });
-        
-        /*
-        clickStream.subscribe(function (event) {
-            console.log('click sendBtn ', event);
-        });
-        
-        textEnteredStream.subscribe(function(text) {
-            console.log('click sendBtn ', text);
-        });
-        */
+        mergedStream.subscribe(onNext, onError, onComplete);                
     },
     render() {
         var value = this.state.message;
@@ -116,6 +110,7 @@ var Main = React.createClass({
     },
     componentDidMount() {        
         var socket = io();
+        
         var props = this.props;
         var users = this.state.users;
         var that = this;
