@@ -121,27 +121,38 @@ var Main = React.createClass({
         var messages = this.state.messages;
         var self = this;
         
-        socket.on('my socketId', data => {
-            console.log('my socketId event ', data.socketId, data.connectTime); 
-            props.socketId = data.socketId;
-            props.connectTime = data.connectTime;
-            
-            socket.emit('client connect', props); //{nickname, socketId, connectTime}
-        });
-        
         //Happens first, same time with io.on('connection') on server, but useless 
         //because it has not socketId.  We do nothing with this event
-        socket.on('connect', () => {});
-
-        socket.on('all users', data => {                
-            self.setState({users: data});            
+        //socket.on('connect', () => {});                
+        
+        var socketIdStream = Rx.Observable.create(observer => {
+            socket.on('my socketId', data => { observer.onNext(data); });
+        });  
+        
+        socketIdStream.subscribe(data => {            
+            socket.emit('client connect', {
+                nickname: props.nickname,
+                socketId: data.socketId,
+                connectTime: data.connectTime 
+            });
         });
         
-        socket.on('message', data => {               
-            console.log(data); 
+        var socketAllUsersStream = Rx.Observable.create(observer => {
+            socket.on('all users', data => { observer.onNext(data); });            
+        });
+
+        socketAllUsersStream.subscribe(data => {
+            self.setState({users: data});
+        });
+        
+        var socketMessageStream = Rx.Observable.create(observer => {
+            socket.on('message', data => { observer.onNext(data); });            
+        });
+        
+        socketMessageStream.subscribe(data => {
             messages.push(data);
             self.setState(messages); //data is {'message': text, 'who': nickname, 'timestamp': Date.now}
-        });
+        });                
     },
     render() {
         return (
