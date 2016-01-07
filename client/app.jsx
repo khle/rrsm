@@ -65,7 +65,7 @@ var ChatPane = React.createClass({
         var onNext = t => { text = t; }
         var onError = e => {}
         var onComplete = () => {            
-            $.post('/message', {'message': text});
+            $.post('/message', {'message': text, 'who': this.props.data.nickname, 'timestamp': Date.now()});
             textField.value = '';
             textField.focus();
             mergedStream.subscribe(onNext, onError, onComplete);
@@ -81,7 +81,16 @@ var ChatPane = React.createClass({
             <div>
                 <h4>Your nickname is {this.props.data.nickname}</h4>
                 <ul className="collection">
-                    
+                    { 
+                        this.props.data.messages.map((message, index) => {
+                            return <li className="collection-item">
+                            <span className="title">{message.who}  <i>{moment(parseInt(message.timestamp)).format('YYYY-MM-DD HH:mm:ss')}</i></span>
+                            <p>                            
+                            <strong>{message.message}</strong>
+                            </p>
+                            </li>
+                        })
+                    }   
                 </ul>
                 <div className="row">
                     <div className="input-field col s10">
@@ -100,7 +109,8 @@ var ChatPane = React.createClass({
 var Main = React.createClass({
     getInitialState() {
         return {
-            users: []
+            users: [],
+            messages: []
         }    
     },
     componentDidMount() {        
@@ -108,6 +118,7 @@ var Main = React.createClass({
         
         var props = this.props;
         var users = this.state.users;
+        var messages = this.state.messages;
         var self = this;
         
         socket.on('my socketId', data => {
@@ -127,8 +138,9 @@ var Main = React.createClass({
         });
         
         socket.on('message', data => {               
-            console.log(data);            
-            self.setState(data); //data is { message: 'something like this' }
+            console.log(data); 
+            messages.push(data);
+            self.setState(messages); //data is {'message': text, 'who': nickname, 'timestamp': Date.now}
         });
     },
     render() {
@@ -136,7 +148,8 @@ var Main = React.createClass({
             <div>
                 <AppBar />
                 <div className="row">                  
-                    <div className="col s6"><ChatPane data={{nickname: this.props.nickname}}/></div>
+                    <div className="col s6"><ChatPane data={{nickname: this.props.nickname, 
+                        messages: this.state.messages}}/></div>
                     <div className="col s6"><PresencePane data={this.state.users} /></div>
                 </div>
             </div>
