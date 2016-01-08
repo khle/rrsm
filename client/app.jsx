@@ -177,5 +177,5 @@ var createRandomNickname = len => {
     return text;
 };
 
-React.render(<Main nickname={createRandomNickname(6)}/>, document.getElementById('container'));
+ReactDOM.render(<Main nickname={createRandomNickname(6)}/>, document.getElementById('container'));
 
