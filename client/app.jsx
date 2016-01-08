@@ -31,7 +31,7 @@ var PresencePane = React.createClass({
                     <tbody>                    
                     { 
                         this.props.data.map((user, index) => {
-                            return <tr> 
+                            return <tr key={user.nickname}> 
                                 <td>{user.nickname}</td>
                                 <td>{moment(user.connectTime).format('YYYY-MM-DD HH:mm:ss')}</td>
                             </tr>
@@ -75,7 +75,7 @@ var ChatPane = React.createClass({
     },
     render() {
         var value = this.state.message;
-        console.log(this.props);        
+        //console.log(this.props);        
         
         return (
             <div>
@@ -83,7 +83,7 @@ var ChatPane = React.createClass({
                 <ul className="collection">
                     { 
                         this.props.data.messages.map((message, index) => {
-                            return <li className="collection-item">
+                            return <li className="collection-item" key={message.timestamp}>
                             <span className="title">{message.who}  <i>{moment(parseInt(message.timestamp)).format('YYYY-MM-DD HH:mm:ss')}</i></span>
                             <p>                            
                             <strong>{message.message}</strong>
@@ -95,7 +95,7 @@ var ChatPane = React.createClass({
                 <div className="row">
                     <div className="input-field col s10">
                         <input id="message-input" type="text" className="validate" ref="message" />
-                        <label className="active" for="message-input">Type your chat, enter/return or hit button to send</label>
+                        <label className="active" htmlFor="message-input">Type your chat, enter/return or hit button to send</label>
                     </div>
                     <div className="input-field col s2">
                         <a id="sendBtn" className="btn-floating btn-large waves-effect waves-light red"><i className="material-icons">send</i></a>
