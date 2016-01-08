@@ -13,14 +13,14 @@ app.use(bodyParser.urlencoded({
     }));
 app.use('/', express.static(path.join(__dirname, 'client')));
 
-var server = app.listen(8080);
-console.log('Server listening on port 8080');
+var server = app.listen(5002);
+//console.log('Server listening on port 5002');
 
 var io = require('socket.io')(server);
 var sourceConnect = Rx.Observable.create(function(observer) {
     
     io.on('connection', function(socket) {
-        console.log('Client connection notified to server first. Client socketId is ', socket.id);
+        //console.log('Client connection notified to server first. Client socketId is ', socket.id);
         
         socket.emit('my socketId', {'socketId': socket.id, 'connectTime': Date.now()});
         
@@ -51,26 +51,26 @@ var observerConnect = sourceConnect
 .subscribe(function(obj) {    
     //obj.socket.emit('new user', obj.data);
     //io.emit('new user', obj.data);    
-    console.log('New client connected ', obj.data);
+    //console.log('New client connected ', obj.data);
     var socketId = obj.data.socketId;
     usersMap = usersMap.set(socketId, obj.data);
-    console.log(usersMap);
+    //console.log(usersMap);
     io.emit('all users', usersMap.toArray());
 });
 
 var observerDisconnect = sourceDisconnect
 .subscribe(function(obj) { 
-    console.log(usersMap);
+    //console.log(usersMap);
     var socketId = obj.socketId;
-    console.log(socketId);
+    //console.log(socketId);
     var user = usersMap.get(socketId);
-    console.log('Client disconnected ', user.socketId, user.nickname);
+    //console.log('Client disconnected ', user.socketId, user.nickname);
     usersMap = usersMap.delete(obj.socketId);
     io.emit('all users', usersMap.toArray());
 });
 
 app.post('/message', function(req, res) {
-    console.log(req.body);
+    //console.log(req.body);
     io.emit('message', req.body);
 });
 
