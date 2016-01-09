@@ -3,6 +3,12 @@
 Post on medium.com
 https://medium.com/@kevinle/rx-ifying-a-chat-room-built-with-reactjs-and-socket-io-459156b7d7ab#.hdfq56vah
 
-To run, simply type
+To use:
 
-node server.js
+$ npm install webpack -g
+
+$ npm install
+
+$ webpack
+
+$ node server.js
