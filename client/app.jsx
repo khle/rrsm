@@ -44,12 +44,7 @@ var PresencePane = React.createClass({
     }
 });
 
-var ChatPane = React.createClass({
-    getInitialState() {
-        return {
-            message: ''
-        }
-    },
+var ChatPane = React.createClass({    
     componentDidMount() {        
         var button = document.getElementById('sendBtn');
         var textField = document.getElementById('message-input');
@@ -73,10 +68,7 @@ var ChatPane = React.createClass({
         
         mergedStream.subscribe(onNext, onError, onComplete);                
     },
-    render() {
-        var value = this.state.message;
-        //console.log(this.props);        
-        
+    render() {                      
         return (
             <div>
                 <h4>Your nickname is {this.props.data.nickname}</h4>
